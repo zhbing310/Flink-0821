@@ -18,14 +18,14 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 public class Flink03_WordCount_Unbounded {
     public static void main(String[] args) throws Exception {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-        env.setParallelism(4);
+        env.setParallelism(1);
 
         //读取文件
-        DataStreamSource<String> textStream = env.socketTextStream("hadoop102", 9999).setParallelism(2);
+        DataStreamSource<String> textStream = env.socketTextStream("hadoop102", 9999);
 
         //拍平转换为元组
 
-        SingleOutputStreamOperator<Tuple2<String, Integer>> wordToOne = textStream.flatMap(new Flink02_WordCount_Bounded.LineToTupleFunc()).setParallelism(3);
+        SingleOutputStreamOperator<Tuple2<String, Integer>> wordToOne = textStream.flatMap(new Flink02_WordCount_Bounded.LineToTupleFunc());
 
         //分组
         KeyedStream<Tuple2<String, Integer>, String> keyBy = wordToOne.keyBy(new KeySelector<Tuple2<String, Integer>, String>() {
@@ -36,7 +36,7 @@ public class Flink03_WordCount_Unbounded {
         });
         //聚合
         SingleOutputStreamOperator<Tuple2<String, Integer>> result = keyBy.sum(1);
-         result.print().setParallelism(6);
+         result.print();
         env.execute();
     }
 }
